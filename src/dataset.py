@@ -5,7 +5,7 @@ import pandas as pd
 
 
 class REDataset(data.Dataset):
-    def __init__(self, contexts, relations):
+    def __init__(self, contexts, relations=None):
         self.contexts = contexts
         self.relations = relations
         self.tokenizer = config.TOKENIZER
@@ -15,8 +15,8 @@ class REDataset(data.Dataset):
         return len(self.contexts)
 
     def __getitem__(self, index):
+
         context = str(self.contexts[index])
-        relation = self.relations[index]
 
         # 现在只有使用encode_plus才能反对字典，encode现在只返回一个list
         # 注意，最好使用 tokenzier(**args)（seq_classification）  这种方法不易出错， 在NER时候， 还是 encode 好些
@@ -43,21 +43,34 @@ class REDataset(data.Dataset):
         # input_ids = torch.tensor(input_ids).long()
         # attention_mask = torch.tensor(attention_mask).long()
         # token_type_ids = torch.tensor(token_type_ids).long()
-        relation = torch.tensor(relation).long()   # 这里是已经 label_encoder 过后的 long
+        if self.relations is not None:
+            relation = self.relations[index]
+            relation = torch.tensor(relation).long()   # 这里是已经 label_encoder 过后的 long
 
-        return{
-            'input_ids': input_ids,
-            'attention_mask': attention_mask,
-            'token_type_ids': token_type_ids,
-            'relation': relation
-        }
+            return {
+                'input_ids': input_ids,
+                'attention_mask': attention_mask,
+                'token_type_ids': token_type_ids,
+                'relation': relation
+            }
+        else:
+            return {
+                'input_ids': input_ids,
+                'attention_mask': attention_mask,
+                'token_type_ids': token_type_ids,
+            }
 
 
 if __name__ == '__main__':
-    df = pd.read_csv(r'../input/process_to_csv/example.csv')
-    print(df)
-    dataset = REDataset(df['context'], df['relation'])
-    print(dataset[0])
+    # df = pd.read_csv(r'../input/process_to_csv/example.csv')
+    # print(df)
+    # dataset = REDataset(df['context'], df['relation'])
+    # print(dataset[0])
 
     # tokenizer = config.TOKENIZER.encode_plus('i have a pen', add_special_tokens=True)
     # print(tokenizer)
+
+    # sentence = [['nothing is more']]
+    # dataset = REDataset(sentence)
+    # print(dataset[0])
+    pass
